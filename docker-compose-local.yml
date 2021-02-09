@@ -33,13 +33,10 @@ services:
     environment:
       - PORT=8010
       - PYTHONUNBUFFERED=1
-#      - DJANGO_SETTINGS_MODULE=worldskills_express.config
       - DJANGO_SETTINGS_MODULE=docker_django1.config
       - DJANGO_ENVIRONMENT=Local
       - DJANGO_SECRET_KEY=local
       - DJANGO_DEBUG=yes
-#      - DATABASE_URL=postgres://postgres:@db_dd:5432/dd
-#      - DATABASE_URL="postgres://postgres:root@pgbouncer_dd:6410/dd"
     ports:
       - "8010:8010"
 
@@ -110,7 +107,6 @@ services:
     container_name: redis_dd
     ports:
       - "6310:6379"
-#    command: redis-server --port 6310
 
 # https://hub.docker.com/r/bitnami/rabbitmq/
   rabbitmq_dd:
