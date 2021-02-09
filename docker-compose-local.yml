@@ -1,0 +1,129 @@
+version: '3.6'
+
+x-defaults: &defaults
+  env_file:
+    - .env.local
+  restart: always
+  logging:
+    options:
+      max-size: '30m'
+      max-file: '10'
+    driver: json-file
+
+services:
+  docker_django1:
+    <<: *defaults
+    build: ./
+    command: >
+      bash -c "./manage.py migrate &&
+               ./manage.py collectstatic --noinput &&
+               ./manage.py populate_history --auto &&
+               ./manage.py runserver 0.0.0.0:8010"
+    container_name: api_dd
+    depends_on:
+      - db_dd
+      - pgbouncer_dd
+      - redis_dd
+      - rabbitmq_dd
+      - celery_dd
+      - celery_scheduler_dd
+      - memcached_dd
+    volumes:
+      - ./:/code
+    environment:
+      - PORT=8010
+      - PYTHONUNBUFFERED=1
+#      - DJANGO_SETTINGS_MODULE=worldskills_express.config
+      - DJANGO_SETTINGS_MODULE=docker_django1.config
+      - DJANGO_ENVIRONMENT=Local
+      - DJANGO_SECRET_KEY=local
+      - DJANGO_DEBUG=yes
+#      - DATABASE_URL=postgres://postgres:@db_dd:5432/dd
+#      - DATABASE_URL="postgres://postgres:root@pgbouncer_dd:6410/dd"
+    ports:
+      - "8010:8010"
+
+  celery_dd:
+    <<: *defaults
+    build: ./
+    container_name: celery_dd
+    volumes:
+      - ./:/code
+
+  celery_scheduler_dd:
+    <<: *defaults
+    build: ./
+    container_name: celery_scheduler_dd
+    volumes:
+      - ./:/code
+
+
+#Celery flower to rework. lib is broken till it fixes.
+#For Flower ver 0.9.7 and Celery >5
+#  https://github.com/mher/flower/issues/1029 -- issue
+#  https://github.com/mher/flower/pull/1021 -- pr
+#  celery_flower_dd:
+##    <<: *defaults
+#    image: mher/flower:latest
+#    container_name: celery_flower_dd
+#    ports:
+#      - "5555:5555"
+#    environment:
+#      - FLOWER_PORT=5555
+#      - CELERY_BROKER_URL=amqp://admin:root@rabbitmq_dd:5672
+
+  pgbouncer_dd:
+    <<: *defaults
+    image: edoburu/pgbouncer
+    container_name: pgbouncer_dd
+    depends_on:
+      - db_dd
+    ports:
+      - "6510:6543"
+    volumes:
+    - ./pgbouncer_cfg:/etc/pgbouncer
+
+  db_dd:
+    <<: *defaults
+#    image: postgres:latest
+    image: postgis/postgis:latest
+    container_name: db_dd
+    volumes:
+      - ./.docker-data/postgres:/data
+    environment:
+      - POSTGRES_DB=dd
+      - POSTGRES_PORT=5432
+      - POSTGRES_PASSWORD=root
+      - PGDATA=/data
+    ports:
+      - "5410:5432"
+
+  memcached_dd:
+    image: memcached:latest
+    container_name: memcached_dd
+    ports:
+      - "11210:11211"
+
+  redis_dd:
+    <<: *defaults
+    image: redis:latest
+    container_name: redis_dd
+    ports:
+      - "6310:6379"
+#    command: redis-server --port 6310
+
+# https://hub.docker.com/r/bitnami/rabbitmq/
+  rabbitmq_dd:
+    <<: *defaults
+    image: bitnami/rabbitmq:latest
+    container_name: rabbitmq_dd
+    environment:
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=root
+      - RABBITMQ_SECURE_PASSWORD=no
+      - RABBITMQ_NODE_PORT_NUMBER=5672
+      - RABBITMQ_NODE_SSL_PORT_NUMBER=5671
+      - RABBITMQ_MANAGEMENT_PORT_NUMBER=15672
+    ports:
+      - "5672:5672"
+

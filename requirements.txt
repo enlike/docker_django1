@@ -1,0 +1,36 @@
+# Core
+## Django
+asgiref
+Django
+pytz
+sqlparse
+gunicorn
+drf-yasg
+django-simple-history
+
+## DRF
+djangorestframework
+markdown
+django-filter
+
+## SQL
+psycopg2
+
+# black
+black
+black[d]
+
+# celery
+celery
+django-celery-beat
+flower
+
+# redis
+redis
+
+# rabbitmq
+pika
+
+# others
+XlsxWriter
+django-debug-toolbar
