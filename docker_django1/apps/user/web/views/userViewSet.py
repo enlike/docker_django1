@@ -11,7 +11,6 @@ logger = logging.getLogger(__file__)
 
 
 class UserViewSet(BaseView):
-    # filter_backends = (DjangoFilterBackend,)
     filterset_class = UserFilter
     serializer_class = UserSerializer
     order_args: Tuple = ('-created', 'email')

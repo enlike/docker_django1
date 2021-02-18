@@ -21,7 +21,6 @@ class UserSerializer(serializers.Serializer):
 
     class Meta:
         fields = '__all__'
-        # fields = ('email', 'first_name')
         model = User
 
     def create(self, validated_data):
